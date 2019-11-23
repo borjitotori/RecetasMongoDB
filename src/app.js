@@ -201,26 +201,28 @@ const runGraphQLServer = function(context) {
 
         const db = client.db("recetario");
         const collection = db.collection("authors")
-        const old = await collection.find({_id: ObjectID(id)}).toArray();
-        const result = await collection.updateOne({_id: ObjectID(id)},
-        { name: name || old.name, 
-          email: email || old.email
-        });
+        const old = await collection.findOne({_id: ObjectID(id)});
+        await collection.updateOne({_id: ObjectID(id)},
+        {$set:{ name: (name || old.name), 
+          email: (email || old.email)
+        }});
+        const result = await collection.findOne({_id: ObjectID(id)})
         return result;
       },
       updateRecipe: async(parent, args, ctx, info) =>{
-        const {id, name, description, author, addingredients, delingredient} = args;
+        const {id, name, description, author, ingredients} = args;
         const { client } = ctx;
 
         const db = client.db("recetario");
         const collection = db.collection("recetas");
-        const old = await collection.find({_id: ObjectID(id)}).toArray();
-        const result = await collection.updateOne({_id: ObjectID(id)},
-        { name: name || old.name, 
-          description: description || old.description, 
-          author: ObjectID(author) || old.author, 
-          ingredients: ingredients || old.ingredients
-        });
+        const old = await collection.findOne({_id: ObjectID(id)});
+        await collection.update({_id: ObjectID(id)},
+        {$set:{ name: name || old.name, 
+          description: (description || old.description), 
+          author: (ObjectID(author) || old.author), 
+          ingredients: (ObjectID(ingredients) || old.ingredients)
+        }});
+        const result = await collection.findOne({_id: ObjectID(id)});
         return result;
       },
       updateIngredient: async(parent, args, ctx, info) =>{
@@ -229,11 +231,12 @@ const runGraphQLServer = function(context) {
 
         const db = client.db("recetario");
         const collection = db.collection("ingredients");
-        const old = collection.find({_id: ObjectID(id)});
-        const result = collection.updateOne({_id: ObjectID(id)},
-        { name: name || old.name,
-          recipes: recipes || old.recipes
-        });
+        const old = await collection.findOne({_id: ObjectID(id)});
+        await collection.updateOne({_id: ObjectID(id)},
+        {$set:{ name: (name || old.name),
+          recipes: (recipes || old.recipes)
+        }});
+        const result = await collection.findOne({_id: ObjectID(id)});
         return result;
       },
       delRecipe: async(parent, args, ctx, info) =>{
